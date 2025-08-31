@@ -6,6 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ArrowLeft, TrendingUp, Activity, DollarSign, Zap } from "lucide-react"
 import Link from "next/link"
+import { WalletConnect } from "@/components/wallet-connect"
+import { DashboardTabs } from "@/components/dashboard-tabs"
+import { VaultsTab } from "@/components/vaults-tab"
 
 const protocols = [
   {
@@ -103,7 +106,7 @@ const getCategoryColor = (category: string) => {
 
 export default function Dashboard() {
   const [selectedProtocols, setSelectedProtocols] = useState<number[]>([])
-  const [depositAmount, setDepositAmount] = useState("")
+  const [activeTab, setActiveTab] = useState<"protocols" | "vaults">("protocols")
 
   const toggleProtocol = (id: number) => {
     setSelectedProtocols((prev) => (prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id]))
@@ -134,16 +137,20 @@ export default function Dashboard() {
               <h1 className="text-xl font-semibold">OnionFi Dashboard</h1>
             </div>
             <div className="flex items-center gap-4">
-              <Badge variant="outline" className="border-green-500/30 text-green-400">
-                <Activity className="w-3 h-3 mr-1" />
-                Connected
-              </Badge>
+              <WalletConnect />
             </div>
           </div>
         </div>
       </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Tab Navigation */}
+        <div className="mb-8">
+          <DashboardTabs activeTab={activeTab} onTabChange={setActiveTab} />
+        </div>
+
+        {activeTab === "protocols" ? (
+          <>
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <Card className="bg-gray-900/50 border-gray-800">
@@ -195,35 +202,7 @@ export default function Dashboard() {
           </Card>
         </div>
 
-        {/* Deposit Section */}
-        <Card className="bg-gray-900/50 border-gray-800 mb-8">
-          <CardHeader>
-            <CardTitle className="text-xl text-white">Quick Deposit</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="flex-1">
-                <input
-                  type="number"
-                  placeholder="Enter amount (USD)"
-                  value={depositAmount}
-                  onChange={(e) => setDepositAmount(e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-              <Button
-                size="lg"
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-3 font-semibold"
-                disabled={!depositAmount || selectedProtocols.length === 0}
-              >
-                Deposit & Optimize
-              </Button>
-            </div>
-            {selectedProtocols.length === 0 && (
-              <p className="text-sm text-gray-400 mt-2">Select protocols below to enable deposits</p>
-            )}
-          </CardContent>
-        </Card>
+
 
         {/* Protocols Table */}
         <Card className="bg-gray-900/50 border-gray-800">
@@ -243,7 +222,6 @@ export default function Dashboard() {
                     <th className="text-left py-3 px-4 text-gray-400 font-medium">TVL</th>
                     <th className="text-left py-3 px-4 text-gray-400 font-medium">Input/Output</th>
                     <th className="text-left py-3 px-4 text-gray-400 font-medium">Risk</th>
-                    <th className="text-left py-3 px-4 text-gray-400 font-medium">API Endpoint</th>
                     <th className="text-left py-3 px-4 text-gray-400 font-medium">24h Change</th>
                   </tr>
                 </thead>
@@ -283,9 +261,6 @@ export default function Dashboard() {
                         <Badge className={getRiskColor(protocol.risk)}>{protocol.risk}</Badge>
                       </td>
                       <td className="py-4 px-4">
-                        <code className="text-xs bg-gray-800 px-2 py-1 rounded text-gray-300">{protocol.api}</code>
-                      </td>
-                      <td className="py-4 px-4">
                         <span
                           className={`font-medium ${
                             protocol.change.startsWith("+") ? "text-green-400" : "text-red-400"
@@ -301,6 +276,10 @@ export default function Dashboard() {
             </div>
           </CardContent>
         </Card>
+          </>
+        ) : (
+          <VaultsTab />
+        )}
       </div>
     </div>
   )
