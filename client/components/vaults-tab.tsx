@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -81,9 +81,26 @@ export function VaultsTab() {
     "deposit" | "withdraw" | "ai-route"
   >("deposit");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [optimizedVaults, setOptimizedVaults] = useState<any[]>([]);
 
   const { account, deposit, isLoading } = useOnionFi();
   const usdToken = useERC20("0x05D032ac25d322df992303dCa074EE7392C117b9");
+
+  // Load optimized vaults from localStorage on component mount
+  useEffect(() => {
+    const stored = localStorage.getItem('onionfi-optimized-vaults');
+    if (stored) {
+      try {
+        const parsedVaults = JSON.parse(stored);
+        setOptimizedVaults(parsedVaults);
+      } catch (error) {
+        console.error('Failed to parse stored vaults:', error);
+      }
+    }
+  }, []);
+
+  // Combine default vaults with optimized vaults
+  const allVaults = [...vaults, ...optimizedVaults.slice(vaults.length)];
 
   const handleVaultAction = async () => {
     if (actionType === "deposit") {
@@ -96,8 +113,7 @@ export function VaultsTab() {
       setWithdrawAmount("");
       setSelectedVault(null);
     } else if (actionType === "ai-route") {
-      // Handle AI routing
-      console.log("AI routing optimization");
+      await handleAIOptimization();
     }
   };
 
@@ -148,7 +164,92 @@ export function VaultsTab() {
     }
   };
 
-  const totalBalance = vaults.reduce((sum, vault) => {
+  const handleAIOptimization = async () => {
+    if (!account) {
+      toast({
+        title: "Error",
+        description: "Please connect your wallet",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setIsProcessing(true);
+      
+      toast({
+        title: "AI Optimization",
+        description: "Fetching protocols and analyzing yields...",
+      });
+
+      // Fetch protocols from backend
+      const protocolsResponse = await fetch('/api/protocols');
+      if (!protocolsResponse.ok) {
+        throw new Error('Failed to fetch protocols');
+      }
+      const protocolsData = await protocolsResponse.json();
+      
+      // Get first 11 protocols
+      const selectedProtocols = protocolsData.protocols.slice(0, 11);
+      
+      // Call Gemini AI for optimization
+      const aiResponse = await fetch('/api/ai-routing', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          amount: '1000000000000000000000', // 1000 tokens for analysis
+          userPreferences: {
+            riskTolerance: 'medium',
+            investmentDuration: 'medium'
+          }
+        })
+      });
+      
+      if (!aiResponse.ok) {
+        throw new Error('AI optimization failed');
+      }
+      
+      const aiResult = await aiResponse.json();
+      
+      // Create optimized vault based on AI recommendation
+      const optimizedVault = {
+        id: Date.now(),
+        name: `AI Optimized - ${aiResult.protocolName}`,
+        strategy: "AI Selected",
+        apy: `${aiResult.expectedYield.toFixed(1)}%`,
+        tvl: "$0", // New vault
+        balance: "$0",
+        risk: aiResult.riskLevel.charAt(0).toUpperCase() + aiResult.riskLevel.slice(1),
+        aiScore: aiResult.confidence,
+        change: "+0.0%",
+        reasoning: aiResult.reasoning
+      };
+      
+      // Update vaults list and store in localStorage
+       const newOptimizedVaults = [...optimizedVaults, optimizedVault];
+       setOptimizedVaults(newOptimizedVaults);
+       localStorage.setItem('onionfi-optimized-vaults', JSON.stringify(newOptimizedVaults));
+      
+      toast({
+        title: "AI Optimization Complete",
+        description: `Recommended: ${aiResult.protocolName} with ${aiResult.expectedYield.toFixed(1)}% expected yield`,
+      });
+      
+    } catch (error) {
+      console.error('AI optimization failed:', error);
+      toast({
+        title: "Optimization Failed",
+        description: "There was an error during AI optimization",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const totalBalance = allVaults.reduce((sum, vault) => {
     return sum + parseFloat(vault.balance.replace("$", "").replace(",", ""));
   }, 0);
 
@@ -385,7 +486,7 @@ export function VaultsTab() {
                 </tr>
               </thead>
               <tbody>
-                {vaults.map((vault) => (
+                {allVaults.map((vault) => (
                   <tr
                     key={vault.id}
                     className={`border-b border-gray-800/50 hover:bg-gray-800/30 transition-colors ${
