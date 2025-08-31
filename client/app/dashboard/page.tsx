@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -15,113 +15,7 @@ import Image from "next/image";
 import { WalletConnect } from "@/components/wallet-connect";
 import { DashboardTabs } from "@/components/dashboard-tabs";
 import { VaultsTab } from "@/components/vaults-tab";
-
-const protocols = [
-  {
-    id: 1,
-    name: "Uniswap V3",
-    category: "DEX",
-    apy: "12.4%",
-    tvl: "$2.1B",
-    input: "ETH/USDC",
-    output: "LP Tokens",
-    risk: "Medium",
-    status: "Active",
-    change: "+2.1%",
-    logo: "https://icons.llamao.fi/icons/protocols/uniswap?w=48&h=48",
-  },
-  {
-    id: 2,
-    name: "Aave V3",
-    category: "Lending",
-    apy: "8.7%",
-    tvl: "$5.8B",
-    input: "USDC",
-    output: "aUSDC",
-    risk: "Low",
-    status: "Active",
-    change: "+0.8%",
-    logo: "https://icons.llamao.fi/icons/protocols/aave?w=48&h=48",
-  },
-  {
-    id: 3,
-    name: "Compound III",
-    category: "Lending",
-    apy: "6.2%",
-    tvl: "$1.9B",
-    input: "USDT",
-    output: "cUSDT",
-    risk: "Low",
-    status: "Active",
-    change: "-0.3%",
-    logo: "https://icons.llamao.fi/icons/protocols/compound?w=48&h=48",
-  },
-  {
-    id: 4,
-    name: "Curve Finance",
-    category: "DEX",
-    apy: "15.8%",
-    tvl: "$3.2B",
-    input: "stETH/ETH",
-    output: "CRV-LP",
-    risk: "Medium",
-    status: "Active",
-    change: "+4.2%",
-    logo: "https://icons.llamao.fi/icons/protocols/curve?w=48&h=48",
-  },
-  {
-    id: 5,
-    name: "Yearn Finance",
-    category: "Vault",
-    apy: "18.9%",
-    tvl: "$890M",
-    input: "WETH",
-    output: "yvWETH",
-    risk: "High",
-    status: "Active",
-    change: "+6.7%",
-    logo: "https://icons.llamao.fi/icons/protocols/yearn?w=48&h=48",
-  },
-  {
-    id: 6,
-    name: "Velodrome Finance",
-    category: "DEX",
-    apy: "22.3%",
-    tvl: "$450M",
-    input: "VELO/USDC",
-    output: "veVELO",
-    risk: "Medium",
-    status: "Active",
-    change: "+5.8%",
-    logo: "https://icons.llamao.fi/icons/protocols/velodrome?w=48&h=48",
-  },
-  {
-    id: 7,
-    name: "Beefy Finance",
-    category: "Vault",
-    apy: "16.7%",
-    tvl: "$320M",
-    input: "BNB/BUSD",
-    output: "mooTokens",
-    risk: "Medium",
-    status: "Active",
-    change: "+3.4%",
-    logo: "https://icons.llamao.fi/icons/protocols/beefy?w=48&h=48",
-  },
-  {
-    id: 8,
-    name: "GearBox Protocol",
-    category: "Lending",
-    apy: "14.2%",
-    tvl: "$180M",
-    input: "ETH/WBTC",
-    output: "dTokens",
-    risk: "High",
-    status: "Active",
-    change: "+7.1%",
-    logo: "https://icons.llamao.fi/icons/protocols/gearbox?w=48&h=48",
-  },
-];
+import { getProtocolsData, Protocol } from "@/lib/defi-llama-api";
 
 const getRiskColor = (risk: string) => {
   switch (risk) {
@@ -154,6 +48,32 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<"protocols" | "vaults">(
     "protocols"
   );
+  const [protocols, setProtocols] = useState<Protocol[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchProtocols = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        console.log('Dashboard: Starting to fetch Lisk protocols...');
+        const data = await getProtocolsData();
+        console.log('Dashboard: Received protocols data:', data);
+        console.log('Dashboard: Number of protocols:', data.length);
+        setProtocols(data);
+      } catch (err) {
+        console.error('Dashboard: Error in fetchProtocols:', err);
+        const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+        setError(`Failed to fetch protocols data: ${errorMessage}`);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProtocols();
+  }, []);
 
   const toggleProtocol = (id: number) => {
     setSelectedProtocols((prev) =>
@@ -264,11 +184,19 @@ export default function Dashboard() {
             <Card className="bg-gray-900/50 border-gray-800">
               <CardHeader>
                 <CardTitle className="text-xl text-white">
-                  Available Protocols
+                  Available Lisk Protocols ({protocols.length})
                 </CardTitle>
                 <p className="text-gray-400">
-                  Select protocols to optimize your yield across multiple DeFi
+                  Select Lisk-based protocols to optimize your yield across multiple DeFi
                   platforms
+                </p>
+                <p className="text-sm text-blue-400">
+                  {loading 
+                    ? "Loading Lisk protocol data..."
+                    : protocols.length > 0 
+                      ? `✅ Successfully loaded ${protocols.length} Lisk protocols with real-time TVL data`
+                      : "❌ No Lisk protocols found"
+                  }
                 </p>
               </CardHeader>
               <CardContent>
@@ -283,13 +211,16 @@ export default function Dashboard() {
                           Protocol
                         </th>
                         <th className="text-left py-3 px-4 text-gray-400 font-medium">
+                          Chain
+                        </th>
+                        <th className="text-left py-3 px-4 text-gray-400 font-medium">
                           Category
                         </th>
                         <th className="text-left py-3 px-4 text-gray-400 font-medium">
                           APY
                         </th>
                         <th className="text-left py-3 px-4 text-gray-400 font-medium">
-                          TVL
+                          TVL (Lisk)
                         </th>
                         <th className="text-left py-3 px-4 text-gray-400 font-medium">
                           Input/Output
@@ -303,7 +234,26 @@ export default function Dashboard() {
                       </tr>
                     </thead>
                     <tbody>
-                      {protocols.map((protocol) => (
+                      {loading ? (
+                         <tr>
+                           <td colSpan={9} className="py-8 text-center text-gray-400">
+                             Loading protocols...
+                           </td>
+                         </tr>
+                       ) : error ? (
+                         <tr>
+                           <td colSpan={9} className="py-8 text-center text-red-400">
+                             {error}
+                           </td>
+                         </tr>
+                      ) : protocols.length === 0 ? (
+                        <tr>
+                          <td colSpan={9} className="py-8 text-center text-gray-400">
+                            No protocols available
+                          </td>
+                        </tr>
+                      ) : (
+                        protocols.map((protocol) => (
                         <tr
                           key={protocol.id}
                           className={`border-b border-gray-800/50 hover:bg-gray-800/30 transition-colors ${
@@ -329,10 +279,17 @@ export default function Dashboard() {
                                 height={24}
                                 className="rounded-full"
                               />
-                              <div className="font-medium text-white">
-                                {protocol.name}
+                              <div className="flex flex-col">
+                                <div className="font-medium text-white">
+                                  {protocol.name}
+                                </div>
                               </div>
                             </div>
+                          </td>
+                          <td className="py-4 px-4">
+                            <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/30 text-xs">
+                              Lisk
+                            </Badge>
                           </td>
                           <td className="py-4 px-4">
                             <Badge
@@ -350,13 +307,10 @@ export default function Dashboard() {
                             {protocol.tvl}
                           </td>
                           <td className="py-4 px-4">
-                            <div className="text-sm">
-                              <div className="text-gray-300">
-                                {protocol.input}
-                              </div>
-                              <div className="text-gray-500">
-                                → {protocol.output}
-                              </div>
+                            <div className="flex items-center gap-2 text-gray-300">
+                              <span>{protocol.input}</span>
+                              <span>→</span>
+                              <span>{protocol.output}</span>
                             </div>
                           </td>
                           <td className="py-4 px-4">
@@ -365,18 +319,15 @@ export default function Dashboard() {
                             </Badge>
                           </td>
                           <td className="py-4 px-4">
-                            <span
-                              className={`font-medium ${
-                                protocol.change.startsWith("+")
-                                  ? "text-green-400"
-                                  : "text-red-400"
-                              }`}
-                            >
-                              {protocol.change}
-                            </span>
-                          </td>
+                              <span className={`font-medium ${
+                                protocol.change.startsWith('+') ? 'text-green-400' : 'text-red-400'
+                              }`}>
+                                {protocol.change}
+                              </span>
+                            </td>
                         </tr>
-                      ))}
+                        ))
+                      )}
                     </tbody>
                   </table>
                 </div>
