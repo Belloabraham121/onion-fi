@@ -10,6 +10,12 @@ const nextConfig = {
       },
       {
         protocol: "https",
+        hostname: "icons.llamao.fi",
+        port: "",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
         hostname: "defillama.com",
         port: "",
         pathname: "/**",

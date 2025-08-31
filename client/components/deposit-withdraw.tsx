@@ -220,7 +220,7 @@ export function DepositWithdraw() {
                   placeholder="0.00"
                   value={depositAmount}
                   onChange={(e) => setDepositAmount(e.target.value)}
-                  disabled={isLoading}
+                  disabled={onionFiLoading}
                 />
                 <p className="text-sm text-muted-foreground">
                   Available: {formatBalance(usdToken.balance)} {usdToken.symbol}
@@ -244,12 +244,12 @@ export function DepositWithdraw() {
                       disabled={
                         !depositAmount ||
                         parseFloat(depositAmount) <= 0 ||
-                        isLoading ||
+                        onionFiLoading ||
                         !account
                       }
                       className="w-full"
                     >
-                      {isLoading ? (
+                      {onionFiLoading ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                           Processing...
@@ -403,7 +403,7 @@ export function DepositWithdraw() {
                   placeholder="0.00"
                   value={withdrawAmount}
                   onChange={(e) => setWithdrawAmount(e.target.value)}
-                  disabled={isLoading}
+                  disabled={onionFiLoading}
                 />
               </div>
 
@@ -473,13 +473,13 @@ export function DepositWithdraw() {
               <Button
                 onClick={handleWithdraw}
                 disabled={
-                  isLoading ||
+                  onionFiLoading ||
                   !withdrawAmount ||
                   (withdrawType === "protocol" && !selectedProtocol)
                 }
                 className="w-full"
               >
-                {isLoading ? (
+                {onionFiLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />{" "}
                     Processing...

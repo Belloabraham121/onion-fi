@@ -2,12 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
   ArrowUpDown,
@@ -18,6 +13,10 @@ import {
   ArrowUp,
   ArrowDown,
 } from "lucide-react";
+import { useOnionFi } from "@/hooks/use-onion-fi";
+import { useERC20 } from "@/hooks/use-erc20";
+import { parseUnits } from "viem";
+import { toast } from "@/hooks/use-toast";
 
 const vaults = [
   {
@@ -81,20 +80,75 @@ export function VaultsTab() {
   const [actionType, setActionType] = useState<
     "deposit" | "withdraw" | "ai-route"
   >("deposit");
+  const [isProcessing, setIsProcessing] = useState(false);
 
-  const handleVaultAction = () => {
-    if (!selectedVault) return;
+  const { account, deposit, isLoading } = useOnionFi();
+  const usdToken = useERC20("0x05D032ac25d322df992303dCa074EE7392C117b9");
 
-    // Simulate vault action
-    console.log(`${actionType} action for vault ${selectedVault}`, {
-      depositAmount,
-      withdrawAmount,
-    });
+  const handleVaultAction = async () => {
+    if (actionType === "deposit") {
+      await handleDirectDeposit();
+    } else if (actionType === "withdraw" && selectedVault) {
+      // Handle vault-specific withdrawal
+      console.log(`${actionType} action for vault ${selectedVault}`, {
+        withdrawAmount,
+      });
+      setWithdrawAmount("");
+      setSelectedVault(null);
+    } else if (actionType === "ai-route") {
+      // Handle AI routing
+      console.log("AI routing optimization");
+    }
+  };
 
-    // Reset form
-    setDepositAmount("");
-    setWithdrawAmount("");
-    setSelectedVault(null);
+  const handleDirectDeposit = async () => {
+    if (!depositAmount || !account) {
+      toast({
+        title: "Error",
+        description: "Please enter an amount and connect your wallet",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setIsProcessing(true);
+
+      // Parse amount to wei (assuming 6 decimals for USDT)
+      const amountInWei = parseUnits(depositAmount, 6);
+
+      // Check if token approval is needed
+      const isApproved = await usdToken.isApproved(amountInWei);
+
+      if (!isApproved) {
+        toast({
+          title: "Approval Required",
+          description: "Approving token spending...",
+        });
+
+        await usdToken.approve(amountInWei);
+
+        toast({
+          title: "Approved",
+          description: "Token spending approved successfully",
+        });
+      }
+
+      // Perform deposit
+      await deposit(depositAmount, "USDT");
+
+      // Reset form on success
+      setDepositAmount("");
+    } catch (error) {
+      console.error("Deposit failed:", error);
+      toast({
+        title: "Deposit Failed",
+        description: "There was an error processing your deposit",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const totalBalance = vaults.reduce((sum, vault) => {
@@ -248,9 +302,12 @@ export function VaultsTab() {
                 size="lg"
                 onClick={handleVaultAction}
                 disabled={
-                  !selectedVault ||
-                  (actionType === "deposit" && !depositAmount) ||
-                  (actionType === "withdraw" && !withdrawAmount)
+                  !account ||
+                  (actionType === "deposit" &&
+                    (!depositAmount || isProcessing || isLoading)) ||
+                  (actionType === "withdraw" &&
+                    (!selectedVault || !withdrawAmount)) ||
+                  (actionType === "ai-route" && !selectedVault)
                 }
                 className={`px-8 py-3 font-semibold ${
                   actionType === "ai-route"
@@ -258,14 +315,30 @@ export function VaultsTab() {
                     : "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
                 } text-white`}
               >
-                {actionType === "deposit" && "Deposit"}
+                {actionType === "deposit" &&
+                  (isProcessing ? "Processing..." : "Deposit to Contract")}
                 {actionType === "withdraw" && "Withdraw"}
                 {actionType === "ai-route" && "Optimize with AI"}
               </Button>
             </div>
-            {!selectedVault && (
+            {!account && (
               <p className="text-sm text-gray-400">
-                Select a vault below to enable actions
+                Connect your wallet to enable actions
+              </p>
+            )}
+            {account && actionType === "withdraw" && !selectedVault && (
+              <p className="text-sm text-gray-400">
+                Select a vault below to withdraw funds
+              </p>
+            )}
+            {account && actionType === "ai-route" && !selectedVault && (
+              <p className="text-sm text-gray-400">
+                Select a vault below for AI optimization
+              </p>
+            )}
+            {account && actionType === "deposit" && (
+              <p className="text-sm text-gray-400">
+                Enter amount above to deposit directly to the OnionFi contract
               </p>
             )}
           </div>
