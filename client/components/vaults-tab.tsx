@@ -114,20 +114,17 @@ export function VaultsTab() {
     try {
       setIsProcessing(true);
 
-      // Parse amount to wei (assuming 6 decimals for USDT)
-      const amountInWei = parseUnits(depositAmount, 6);
-
       // Check if token approval is needed
-      const isApproved = await usdToken.isApproved(amountInWei);
-
+      const isApproved = await usdToken.isApproved(depositAmount);
+      
       if (!isApproved) {
         toast({
           title: "Approval Required",
           description: "Approving token spending...",
         });
-
-        await usdToken.approve(amountInWei);
-
+        
+        await usdToken.approve(depositAmount);
+        
         toast({
           title: "Approved",
           description: "Token spending approved successfully",
