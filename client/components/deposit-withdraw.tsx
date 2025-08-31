@@ -25,6 +25,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useOnionFi, useAIRouting } from "@/hooks/use-onion-fi";
 import { useSupportedTokens } from "@/hooks/use-erc20";
 import { toast } from "sonner";
+import { DepositModal } from "@/components/deposit-modal";
 
 export function DepositWithdraw() {
   const [depositAmount, setDepositAmount] = useState("");
@@ -77,8 +78,8 @@ export function DepositWithdraw() {
         if (!approved) return;
       }
 
-      // Perform deposit
-      const success = await deposit(amountInWei);
+      // Perform deposit (using USDT as default for backward compatibility)
+      const success = await deposit(depositAmount, "USDT");
       if (success) {
         setDepositAmount("");
       }
@@ -229,30 +230,41 @@ export function DepositWithdraw() {
               <Separator />
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Manual Deposit */}
+                {/* Direct Deposit */}
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-lg">Manual Deposit</CardTitle>
+                    <CardTitle className="text-lg">Direct Deposit</CardTitle>
                     <CardDescription>
-                      Deposit funds to your available balance for manual
-                      investment later.
+                      Deposit the amount directly to the contract using USDT.
                     </CardDescription>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="space-y-4">
                     <Button
                       onClick={handleDeposit}
-                      disabled={isLoading || !depositAmount}
+                      disabled={
+                        !depositAmount ||
+                        parseFloat(depositAmount) <= 0 ||
+                        isLoading ||
+                        !account
+                      }
                       className="w-full"
                     >
                       {isLoading ? (
                         <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />{" "}
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                           Processing...
                         </>
                       ) : (
-                        "Deposit"
+                        "Deposit to Contract"
                       )}
                     </Button>
+                    <DepositModal
+                      trigger={
+                        <Button variant="outline" className="w-full">
+                          Choose Token
+                        </Button>
+                      }
+                    />
                   </CardContent>
                 </Card>
 

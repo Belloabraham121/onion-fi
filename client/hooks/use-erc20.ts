@@ -186,7 +186,9 @@ export function useERC20(tokenAddress: string) {
     (amount: string | bigint) => {
       if (!decimals) return "0";
       // Use a helper function for BigInt exponentiation
-      const divisor = Array(decimals).fill(0).reduce((acc) => acc * BigInt(10), BigInt(1));
+      const divisor = Array(decimals)
+        .fill(0)
+        .reduce((acc) => acc * BigInt(10), BigInt(1));
       return (BigInt(amount) / divisor).toString();
     },
     [decimals]
@@ -198,11 +200,16 @@ export function useERC20(tokenAddress: string) {
       if (!decimals) return "0";
       try {
         // Use a helper function for BigInt exponentiation
-        const multiplier = Array(decimals).fill(0).reduce((acc) => acc * BigInt(10), BigInt(1));
+        const multiplier = Array(decimals)
+          .fill(0)
+          .reduce((acc) => acc * BigInt(10), BigInt(1));
         // Use a more precise approach for decimal handling
         const [integerPart, decimalPart = ""] = amount.split(".");
-        const paddedDecimal = decimalPart.padEnd(decimals, "0").slice(0, decimals);
-        const result = BigInt(integerPart) * multiplier + BigInt(paddedDecimal || "0");
+        const paddedDecimal = decimalPart
+          .padEnd(decimals, "0")
+          .slice(0, decimals);
+        const result =
+          BigInt(integerPart) * multiplier + BigInt(paddedDecimal || "0");
         return result.toString();
       } catch (error) {
         console.error("Error parsing amount:", error);

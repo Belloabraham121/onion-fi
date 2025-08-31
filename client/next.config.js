@@ -4,7 +4,7 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "icons.llamao.fi",
+        hostname: "icons.llama.fi",
         port: "",
         pathname: "/**",
       },
