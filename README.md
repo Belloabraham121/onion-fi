@@ -1,6 +1,6 @@
 # OnionFi 🧅
 
-*AI-Powered DeFi Yield Optimization on Lisk*
+_AI-Powered DeFi Yield Optimization on Lisk_
 
 ## Vision
 
@@ -15,26 +15,31 @@ OnionFi is a revolutionary DeFi platform that combines the power of artificial i
 ### Key Features
 
 🤖 **AI-Powered Optimization**
+
 - Advanced machine learning algorithms analyze market conditions in real-time
 - Automatic protocol selection based on yield potential and risk assessment
 - Continuous rebalancing to maximize returns
 
 💰 **Multi-Protocol Yield Farming**
+
 - Access to 11+ leading DeFi protocols
 - Diversified investment strategies across lending, liquidity provision, and staking
 - Seamless integration with top protocols like Uniswap, Aave, Compound, and more
 
 🛡️ **Smart Risk Management**
+
 - AI-driven risk assessment for each protocol
 - Automated diversification to minimize exposure
 - Real-time monitoring and adjustment of positions
 
 ⚡ **One-Click Simplicity**
+
 - No need to manually research protocols or manage multiple positions
 - Simple deposit interface with automatic optimization
 - Transparent reporting of all activities and returns
 
 🔒 **Security First**
+
 - Non-custodial architecture - you always control your funds
 - Smart contract audited for maximum security
 - Built on battle-tested DeFi infrastructure
@@ -74,21 +79,12 @@ By building on Lisk, we ensure that our users enjoy efficient, cost-effective, a
 4. Let our AI optimize your yields automatically
 5. Watch your returns grow!
 
-## Community & Support
-
-Join our growing community of smart investors:
-
-- 🐦 Twitter: [@OnionFi](https://twitter.com/onionfi)
-- 💬 Discord: [OnionFi Community](https://discord.gg/onionfi)
-- 📧 Email: hello@onionfi.app
-- 📖 Documentation: [docs.onionfi.app](https://docs.onionfi.app)
-
 ## Disclaimer
 
 DeFi investments carry inherent risks. While OnionFi's AI optimization aims to maximize returns and minimize risks, all investments are subject to market volatility and potential loss. Please invest responsibly and only what you can afford to lose.
 
 ---
 
-*Built with ❤️ by the OnionFi Team*
+_Built with ❤️ by the OnionFi Team_
 
-*Deployed on Lisk • Powered by AI • Secured by Smart Contracts*
+_Deployed on Lisk • Powered by AI • Secured by Smart Contracts_
